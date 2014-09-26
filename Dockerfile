@@ -23,7 +23,7 @@ ADD files/td.repo /etc/yum.repos.d/td.repo
 
 RUN \
     yum --enablerepo=remi,epel,treasuredata install -y \
-    sudo which tar bzip2 zip unzip git openssh-server openssh-clients syslog gcc gcc-c++ libxml2 libxml2-devel libxslt libxslt-devel readline readline-devel \
+    sudo which tar bzip2 zip unzip curl-devel git openssh-server openssh-clients syslog gcc gcc-c++ libxml2 libxml2-devel libxslt libxslt-devel readline readline-devel \
     httpd httpd-devel mysql-server mysql-devel phpmyadmin sqlite sqlite-devel redis td-agent \
     php php-devel php-pear php-mysql php-gd php-mbstring php-pecl-imagick php-pecl-memcache nodejs npm erlang
     sensu uchiwa
