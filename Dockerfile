@@ -25,7 +25,8 @@ RUN \
     yum --enablerepo=remi,epel,treasuredata install -y \
     sudo which tar bzip2 zip unzip git openssh-server openssh-clients syslog gcc gcc-c++ libxml2 libxml2-devel libxslt libxslt-devel readline readline-devel \
     httpd httpd-devel mysql-server mysql-devel phpmyadmin sqlite sqlite-devel redis td-agent \
-    php php-devel php-pear php-mysql php-gd php-mbstring php-pecl-imagick php-pecl-memcache nodejs npm
+    php php-devel php-pear php-mysql php-gd php-mbstring php-pecl-imagick php-pecl-memcache nodejs npm erlang
+    sensu uchiwa
 
 RUN mkdir -m 700 /root/.ssh
 
@@ -39,21 +40,23 @@ RUN sed -rie "9i Allow from $IP" /etc/httpd/conf.d/phpmyadmin.conf
 RUN sed -ri "s/__YOUR_LOG_SERVER_HERE__/$LOGSERVER/" /etc/td-agent/td-agent.conf
 RUN sed -ri "s/cfg\['blowfish_secret'\] = ''/cfg['blowfish_secret'] = '`uuidgen`'/" /usr/share/phpmyadmin/config.inc.php
 
+
 # sshでログインするユーザーを用意
 RUN useradd $USER
 RUN echo "$USER:$PW" | chpasswd
 RUN echo "$USER ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers.d/$USER
 
-RUN chmod 755 /var/log/httpd
 RUN touch /etc/sysconfig/network
 
-RUN service mysqld start && \
-    /usr/bin/mysqladmin -u root password "$PW"
-
+RUN chmod 755 /var/log/httpd
 RUN echo hello > /var/www/html/index.html
 
+RUN \
+  service mysqld start && \
+  /usr/bin/mysqladmin -u root password "$PW"
+
+
 # RabbitMQ
-RUN yum install -y erlang
 RUN rpm --import http://www.rabbitmq.com/rabbitmq-signing-key-public.asc
 RUN rpm -Uvh http://www.rabbitmq.com/releases/rabbitmq-server/v3.1.4/rabbitmq-server-3.1.4-1.noarch.rpm
 RUN git clone https://github.com/joemiller/joemiller.me-intro-to-sensu.git
@@ -65,16 +68,16 @@ RUN cp /joemiller.me-intro-to-sensu/testca/cacert.pem /etc/rabbitmq/ssl/
 ADD files/rabbitmq.config /etc/rabbitmq/
 RUN rabbitmq-plugins enable rabbitmq_management
 
+
 # Sensu server
 ADD ./files/sensu.repo /etc/yum.repos.d/
-RUN yum install -y sensu
 ADD ./files/config.json /etc/sensu/
 RUN mkdir -p /etc/sensu/ssl
 RUN cp /joemiller.me-intro-to-sensu/client_cert.pem /etc/sensu/ssl/cert.pem
 RUN cp /joemiller.me-intro-to-sensu/client_key.pem /etc/sensu/ssl/key.pem
 # uchiwa
-RUN yum install -y uchiwa
 ADD ./files/uchiwa.json /etc/sensu/
+
 
 # supervisord
 RUN wget http://peak.telecommunity.com/dist/ez_setup.py;python ez_setup.py
@@ -90,6 +93,7 @@ CMD ["/usr/bin/supervisord"]
 # install node.js
 RUN npm install -g grunt grunt-cli sass coffee-script bower
 RUN npm install -g grunt-bower-task grunt-contrib-csslint grunt-contrib-cssmin grunt-contrib-watch grunt-contrib-uglify grunt-contrib-concat grunt-contrib-compass --save-dev
+
 
 # install ruby
 ENV PATH /root/.rbenv/bin:$PATH
