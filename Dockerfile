@@ -20,6 +20,7 @@ RUN \
     rpm -ivh http://rpms.famillecollet.com/enterprise/remi-release-6.rpm ;\
     rpm -ivh http://pkgs.repoforge.org/rpmforge-release/rpmforge-release-0.5.3-1.el6.rf.x86_64.rpm
 ADD files/td.repo /etc/yum.repos.d/td.repo
+ADD files/td-agent.conf /etc/td-agent/td-agent.conf
 
 RUN \
     yum --enablerepo=remi,epel,treasuredata install -y \
@@ -29,10 +30,6 @@ RUN \
     sensu uchiwa
 
 RUN mkdir -m 700 /root/.ssh
-
-ADD files/td-agent.conf /etc/td-agent/td-agent.conf
-RUN chown -R root:root /etc/td-agent/td-agent.conf
-RUN chmod -R 600 /etc/td-agent/td-agent.conf
 
 RUN sed -ri "s/^UsePAM yes/#UsePAM yes/" /etc/ssh/sshd_config
 RUN sed -ri "s/^#UsePAM no/UsePAM no/" /etc/ssh/sshd_config
