@@ -1,6 +1,6 @@
  概要
 ----
-CentOS6にLAMP環境をインストール。プロセス監視はsupervisorで行う
+CentOS6にLAMP環境をインストール。プロセス起動はsupervisorで行う
 
 - apache
 - php5.4
