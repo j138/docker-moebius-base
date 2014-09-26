@@ -1,6 +1,6 @@
-# 概要
-CentOS6にLAMP環境をインストール
-supervisorでプロセスを監視させる
+ 概要
+----
+CentOS6にLAMP環境をインストール。プロセス監視はsupervisorで行う
 
 - apache
 - php5.4
@@ -10,6 +10,9 @@ supervisorでプロセスを監視させる
 - sqlite
 - supervisor
 - td-agent
+- sensu
+- uchiwa
 
-# TODO
+TODO
+----
 passengerをインストール
