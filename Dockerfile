@@ -26,7 +26,7 @@ RUN \
     yum --enablerepo=remi,epel,treasuredata install -y \
     sudo which tar bzip2 zip unzip curl-devel git openssh-server openssh-clients syslog gcc gcc-c++ libxml2 libxml2-devel libxslt libxslt-devel readline readline-devel \
     httpd httpd-devel mysql-server mysql-devel phpmyadmin sqlite sqlite-devel redis td-agent \
-    php php-devel php-pear php-mysql php-gd php-mbstring php-pecl-imagick php-pecl-memcache nodejs npm erlang
+    php php-devel php-pear php-mysql php-gd php-mbstring php-pecl-imagick php-pecl-memcache nodejs npm erlang \
     sensu uchiwa
 
 RUN mkdir -m 700 /root/.ssh
@@ -107,6 +107,13 @@ RUN \
 
 RUN \
     echo 'gem: --no-rdoc --no-ri' >> /.gemrc && \
-    gem install bundler
+    gem install bundler passenger
+
+ADD files/passenger.conf /etc/httpd/conf.d/passenger.conf
+
+RUN \
+  eval "$(rbenv init -)" ; \
+  passenger-install-apache2-module -a ; \
+  passenger-install-apache2-module --snippet >> /etc/httpd/conf.d/passenger.conf
 
 EXPOSE 22 80 3000 4567 5671 15672
