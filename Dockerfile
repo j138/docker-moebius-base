@@ -13,21 +13,21 @@ RUN yum update -y
 RUN yum install wget -y
 
 RUN \
-    rpm --import http://rpms.famillecollet.com/RPM-GPG-KEY-remi ;\
-    rpm --import http://dl.fedoraproject.org/pub/epel/RPM-GPG-KEY-EPEL-6 ;\
-    rpm --import http://apt.sw.be/RPM-GPG-KEY.dag.txt ;\
-    rpm -ivh http://dl.fedoraproject.org/pub/epel/6/x86_64/epel-release-6-8.noarch.rpm ;\
-    rpm -ivh http://rpms.famillecollet.com/enterprise/remi-release-6.rpm ;\
-    rpm -ivh http://pkgs.repoforge.org/rpmforge-release/rpmforge-release-0.5.3-1.el6.rf.x86_64.rpm
+  rpm --import http://rpms.famillecollet.com/RPM-GPG-KEY-remi ;\
+  rpm --import http://dl.fedoraproject.org/pub/epel/RPM-GPG-KEY-EPEL-6 ;\
+  rpm --import http://apt.sw.be/RPM-GPG-KEY.dag.txt ;\
+  rpm -ivh http://dl.fedoraproject.org/pub/epel/6/x86_64/epel-release-6-8.noarch.rpm ;\
+  rpm -ivh http://rpms.famillecollet.com/enterprise/remi-release-6.rpm ;\
+  rpm -ivh http://pkgs.repoforge.org/rpmforge-release/rpmforge-release-0.5.3-1.el6.rf.x86_64.rpm
 ADD files/td.repo /etc/yum.repos.d/td.repo
 ADD files/td-agent.conf /etc/td-agent/td-agent.conf
 
 RUN \
-    yum --enablerepo=remi,epel,treasuredata install -y \
-    sudo which tar bzip2 zip unzip curl-devel git openssh-server openssh-clients syslog gcc gcc-c++ libxml2 libxml2-devel libxslt libxslt-devel readline readline-devel \
-    httpd httpd-devel mysql-server mysql-devel phpmyadmin sqlite sqlite-devel redis td-agent \
-    php php-devel php-pear php-mysql php-gd php-mbstring php-pecl-imagick php-pecl-memcache nodejs npm erlang \
-    sensu uchiwa
+  yum --enablerepo=remi,epel,treasuredata install -y \
+  sudo which tar bzip2 zip unzip curl-devel git openssh-server openssh-clients syslog gcc gcc-c++ libxml2 libxml2-devel libxslt libxslt-devel readline readline-devel \
+  httpd httpd-devel mysql-server mysql-devel phpmyadmin sqlite sqlite-devel redis td-agent \
+  php php-devel php-pear php-mysql php-gd php-mbstring php-pecl-imagick php-pecl-memcache nodejs npm erlang \
+  sensu uchiwa
 
 RUN mkdir -m 700 /root/.ssh
 
@@ -93,27 +93,29 @@ RUN npm install -g grunt-bower-task grunt-contrib-csslint grunt-contrib-cssmin g
 
 
 # install ruby
-ENV PATH /root/.rbenv/bin:$PATH
-ENV PATH /root/.rbenv/shims:$PATH
+ENV RBENV_ROOT /usr/local/rbenv
+ENV PATH $RBENV_ROOT/bin:$PATH
+ENV PATH $RBENV_ROOT/shims:$PATH
 RUN echo 'eval "$(rbenv init -)"' >> ~/.bashrc
 RUN echo 'eval "$(rbenv init -)"' >> /etc/profile.d/rbenv.sh
 
-RUN git clone https://github.com/sstephenson/rbenv.git ~/.rbenv
-RUN git clone https://github.com/sstephenson/ruby-build.git ~/.rbenv/plugins/ruby-build
+RUN git clone https://github.com/sstephenson/rbenv.git $RBENV_ROOT
+RUN git clone https://github.com/sstephenson/ruby-build.git $RBENV_ROOT/plugins/ruby-build
+RUN $RBENV_ROOT/plugins/ruby-build/install.sh
 
 RUN \
-    rbenv install 2.1.2 ;\
-    rbenv global 2.1.2
+  rbenv install 2.1.3 ;\
+  rbenv global 2.1.3
 
 RUN \
-    echo 'gem: --no-rdoc --no-ri' >> /.gemrc && \
-    gem install bundler passenger
+  echo 'gem: --no-rdoc --no-ri' >> /.gemrc ;\
+  gem install bundler passenger
 
 ADD files/passenger.conf /etc/httpd/conf.d/passenger.conf
 
 RUN \
-  eval "$(rbenv init -)" ; \
-  passenger-install-apache2-module -a ; \
+  eval "$(rbenv init -)" ;\
+  passenger-install-apache2-module -a ;\
   passenger-install-apache2-module --snippet >> /etc/httpd/conf.d/passenger.conf
 
 EXPOSE 22 80 3000 4567 5671 15672
