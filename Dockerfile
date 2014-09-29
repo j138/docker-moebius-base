@@ -107,6 +107,8 @@ RUN \
   rbenv install 2.1.3 ;\
   rbenv global 2.1.3
 
+RUN chown -R apache. $RBENV_ROOT
+
 RUN \
   echo 'gem: --no-rdoc --no-ri' >> /.gemrc ;\
   gem install bundler passenger
