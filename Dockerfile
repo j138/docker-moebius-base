@@ -25,9 +25,12 @@ ADD files/td-agent.conf /etc/td-agent/td-agent.conf
 RUN \
   yum --enablerepo=remi,epel,treasuredata install -y \
   sudo which tar bzip2 zip unzip curl-devel git openssh-server openssh-clients syslog gcc gcc-c++ libxml2 libxml2-devel libxslt libxslt-devel readline readline-devel \
-  httpd httpd-devel mysql-server mysql-devel phpmyadmin sqlite sqlite-devel redis td-agent \
-  php php-devel php-pear php-mysql php-gd php-mbstring php-pecl-imagick php-pecl-memcache nodejs npm erlang \
-  sensu uchiwa
+  httpd httpd-devel mysql-server mysql-devel phpmyadmin sqlite sqlite-devel redis td-agent sensu uchiwa \
+  php php-devel php-pear php-mysql php-gd php-mbstring php-pecl-imagick php-pecl-memcache nodejs npm erlang
+
+RUN \
+  yum --enablerepo=remi,epel,treasuredata install -y \
+  bash-completion zsh htop vim file
 
 RUN mkdir -m 700 /root/.ssh
 
