@@ -3,14 +3,7 @@
     "name": "sensu-client-node-hostname",
     "address": "localhost",
     "subscriptions": [
-      "common",
-      "web"
+      "default"
     ]
-  },
-  "keepalive": {
-    "thresholds": {
-      "critical": 60
-    },
-    "refresh": 300
   }
 }

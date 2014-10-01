@@ -66,33 +66,27 @@ RUN cp /joemiller.me-intro-to-sensu/server_cert.pem /etc/rabbitmq/ssl/cert.pem
 RUN cp /joemiller.me-intro-to-sensu/server_key.pem /etc/rabbitmq/ssl/key.pem
 RUN cp /joemiller.me-intro-to-sensu/testca/cacert.pem /etc/rabbitmq/ssl/
 ADD files/rabbitmq.config /etc/rabbitmq/
+RUN sed -ri "s/\\\$PW/$PW/" /etc/rabbitmq/rabbitmq.config
 RUN rabbitmq-plugins enable rabbitmq_management
 
 
-## Sensu server
+## Sensu server, uchiwa
 ADD ./files/sensu.repo /etc/yum.repos.d/
+RUN yum install -y sensu uchiwa
+
 ADD ./files/config.json /etc/sensu/
-ADD ./files/client.json /etc/sensu/
-RUN yum install -y sensu
+ADD ./files/client.json /etc/sensu/conf.d/
+ADD ./files/uchiwa.json /etc/sensu/
+RUN sed -ri "s/\\\$PW/$PW/" /etc/sensu/config.json
 RUN mkdir -p /etc/sensu/ssl
 RUN cp /joemiller.me-intro-to-sensu/client_cert.pem /etc/sensu/ssl/cert.pem
 RUN cp /joemiller.me-intro-to-sensu/client_key.pem /etc/sensu/ssl/key.pem
-
-
-# uchiwa
-RUN yum install -y uchiwa
-ADD ./files/uchiwa.json /etc/sensu/
 
 
 # supervisord
 RUN wget http://peak.telecommunity.com/dist/ez_setup.py;python ez_setup.py
 RUN easy_install supervisor
 ADD files/supervisord.conf /etc/supervisord.conf
-
-RUN /etc/init.d/sshd start
-RUN /etc/init.d/sshd stop
-
-CMD ["/usr/bin/supervisord"]
 
 
 # install node.js
@@ -130,3 +124,7 @@ RUN \
   passenger-install-apache2-module --snippet >> /etc/httpd/conf.d/passenger.conf
 
 EXPOSE 22 80 3000 4567 5671 15672
+
+RUN /etc/init.d/sshd start && /etc/init.d/sshd stop
+CMD ["/usr/bin/supervisord"]
+
