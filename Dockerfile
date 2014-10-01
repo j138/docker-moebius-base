@@ -103,7 +103,8 @@ RUN npm install -g grunt-bower-task grunt-contrib-csslint grunt-contrib-cssmin g
 ENV RBENV_ROOT /usr/local/rbenv
 ENV PATH $RBENV_ROOT/bin:$PATH
 ENV PATH $RBENV_ROOT/shims:$PATH
-RUN echo 'eval "$(rbenv init -)"' >> ~/.bashrc
+RUN echo 'export RBENV_ROOT=/usr/local/rbenv' >> /etc/profile.d/rbenv.sh
+RUN echo 'export PATH="$RBENV_ROOT/bin:$PATH"' >> /etc/profile.d/rbenv.sh
 RUN echo 'eval "$(rbenv init -)"' >> /etc/profile.d/rbenv.sh
 
 RUN git clone https://github.com/sstephenson/rbenv.git $RBENV_ROOT
