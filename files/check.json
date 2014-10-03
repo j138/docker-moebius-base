@@ -1,0 +1,19 @@
+{
+  "checks":{
+    "http_ack": {
+      "command": "/etc/sensu/plugins/http/check-http.rb --url http://localhost/index.html --response-code 200 ",
+      "interval": 60,
+      "refresh": 20,
+      "subscribers": ["frontend"],
+      "standalone": true
+    },
+    "sshd_proc": {
+      "command": "/etc/sensu/plugins/processes/check-procs.rb -p sshd -C 1 ",
+      "subscribers": ["common"],
+      "interval": 180,
+      "occurrences": 2,
+      "refresh": 180,
+      "standalone": true
+    }
+  }
+}
