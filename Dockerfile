@@ -91,6 +91,12 @@ RUN \
   passenger-install-apache2-module --snippet >> /etc/httpd/conf.d/passenger.conf
 
 
+# supervisord
+RUN wget http://peak.telecommunity.com/dist/ez_setup.py;python ez_setup.py
+RUN easy_install supervisor
+ADD files/supervisord.conf /etc/supervisord.conf
+
+
 # RabbitMQ
 RUN rpm --import http://www.rabbitmq.com/rabbitmq-signing-key-public.asc
 RUN rpm -Uvh http://www.rabbitmq.com/releases/rabbitmq-server/v3.1.4/rabbitmq-server-3.1.4-1.noarch.rpm
@@ -108,15 +114,13 @@ RUN rabbitmq-plugins enable rabbitmq_management
 # Sensu server, uchiwa
 ADD ./files/sensu.repo /etc/yum.repos.d/
 RUN yum install -y sensu uchiwa
-
-ADD ./files/config.json /etc/sensu/
-ADD ./files/client.json /etc/sensu/conf.d/
 ADD ./files/uchiwa.json /etc/sensu/
+ADD ./files/config.json /etc/sensu/
 RUN sed -ri "s/\\\$PW/$PW/" /etc/sensu/config.json
+
 RUN mkdir -p /etc/sensu/ssl
 RUN cp /joemiller.me-intro-to-sensu/client_cert.pem /etc/sensu/ssl/cert.pem
 RUN cp /joemiller.me-intro-to-sensu/client_key.pem /etc/sensu/ssl/key.pem
-
 
 # sensu plugin
 RUN git clone https://github.com/sensu/sensu-community-plugins /usr/local/sensu-community-plugins
@@ -126,12 +130,8 @@ RUN mv /etc/sensu/plugins /etc/sensu/plugins.bk
 RUN ln -s /usr/local/sensu-community-plugins/plugins /etc/sensu/plugins
 RUN find /etc/sensu/plugins/ -name "*.rb" | xargs chmod +x
 
-
-# supervisord
-RUN wget http://peak.telecommunity.com/dist/ez_setup.py;python ez_setup.py
-RUN easy_install supervisor
-ADD files/supervisord.conf /etc/supervisord.conf
-
+# conf
+ADD ./files/client.json /etc/sensu/conf.d/
 
 EXPOSE 22 80 3000 4567 5671 15672
 

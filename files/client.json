@@ -1,9 +1,29 @@
 {
   "client": {
-    "name": "sensu-client-node-hostname",
+    "name": "sensu-client-node-dev",
     "address": "localhost",
     "subscriptions": [
-      "default"
+      "default",
+      "frontend_http_check"
     ]
-  }
+  },
+  "check":{
+    "name": "frontend_http_check",
+    "issued": 1412317798,
+	"output": "HTTP CRITICAL: HTTP/1.1 503 Service Temporarily Unavaliable",
+    "status": 2,
+    "command": "check_http -I 127.0.0.1 -u curl http://localhost/healthcheck.html -R 'ok'",
+    "subscribers":[
+      "frontend"
+    ],
+    "interval": 60,
+    "handler": "campfire",
+    "history": [
+      "0",
+      "2"
+    ],
+    "flapping": false
+  },
+  "occurrences": 1,
+  "action": "create"
 }
