@@ -117,6 +117,7 @@ RUN yum install -y sensu uchiwa
 ADD ./files/uchiwa.json /etc/sensu/
 ADD ./files/config.json /etc/sensu/
 RUN sed -ri "s/\\\$PW/$PW/" /etc/sensu/config.json
+RUN sed -ri "s/EMBEDDED_RUBY=false/EMBEDDED_RUBY=true/" /etc/default/sensu
 
 RUN mkdir -p /etc/sensu/ssl
 RUN cp /joemiller.me-intro-to-sensu/client_cert.pem /etc/sensu/ssl/cert.pem
@@ -132,6 +133,7 @@ RUN find /etc/sensu/plugins/ -name "*.rb" | xargs chmod +x
 
 # conf
 ADD ./files/client.json /etc/sensu/conf.d/
+ADD ./files/check.json /etc/sensu/conf.d/
 
 EXPOSE 22 80 3000 4567 5671 15672
 
