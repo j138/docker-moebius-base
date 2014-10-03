@@ -121,7 +121,7 @@ RUN cp /joemiller.me-intro-to-sensu/client_key.pem /etc/sensu/ssl/key.pem
 # sensu plugin
 RUN git clone https://github.com/sensu/sensu-community-plugins /usr/local/sensu-community-plugins
 WORKDIR /usr/local/sensu-community-plugins
-RUN bundle install
+RUN bundle install --path vendor/bundle
 RUN mv /etc/sensu/plugins /etc/sensu/plugins.bk
 RUN ln -s /usr/local/sensu-community-plugins/plugins /etc/sensu/plugins
 RUN find /etc/sensu/plugins/ -name "*.rb" | xargs chmod +x
