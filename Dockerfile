@@ -21,6 +21,7 @@ RUN \
   rpm -ivh http://pkgs.repoforge.org/rpmforge-release/rpmforge-release-0.5.3-1.el6.rf.x86_64.rpm
 ADD files/td.repo /etc/yum.repos.d/td.repo
 ADD files/td-agent.conf /etc/td-agent/td-agent.conf
+RUN gpasswd -a td-agent apache
 
 RUN \
   yum --enablerepo=remi,epel,treasuredata install -y \
@@ -51,11 +52,16 @@ RUN touch /etc/sysconfig/network
 RUN /etc/init.d/sshd start && /etc/init.d/sshd stop
 
 RUN chmod 755 /var/log/httpd
+RUN chown apache. /var/log/httpd
 RUN echo hello > /var/www/html/index.html
 
 RUN \
   service mysqld start && \
   /usr/bin/mysqladmin -u root password "$PW"
+
+
+RUN gem install redis
+RUN sed -ri "s/daemonize yes/daemonize no/" /etc/redis.conf
 
 
 # install node.js
@@ -83,7 +89,7 @@ RUN chown -R apache. $RBENV_ROOT
 
 RUN \
   echo 'gem: --no-rdoc --no-ri' >> /.gemrc ;\
-  gem install bundler passenger sensu-plugin
+  gem install bundler passenger sensu-plugin redis ruby-supervisor
 
 ADD files/passenger.conf /etc/httpd/conf.d/passenger.conf
 
@@ -96,6 +102,8 @@ RUN \
 # supervisord
 RUN wget http://peak.telecommunity.com/dist/ez_setup.py;python ez_setup.py
 RUN easy_install supervisor
+RUN mkdir /etc/supervisord/
+RUN mkdir /var/log/supervisord
 ADD files/supervisord.conf /etc/supervisord.conf
 
 
