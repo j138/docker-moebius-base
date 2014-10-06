@@ -1,5 +1,37 @@
 {
   "checks":{
+    "check-cpu": {
+      "command": "/etc/sensu/plugins/system/check-cpu.rb",
+      "subscribers": ["common"],
+      "interval": 180,
+      "occurrences": 2,
+      "refresh": 180,
+      "standalone": true
+    },
+    "check-disk": {
+      "command": "/etc/sensu/plugins/system/check-disk.rb",
+      "subscribers": ["common"],
+      "interval": 180,
+      "occurrences": 2,
+      "refresh": 180,
+      "standalone": true
+    },
+    "check-load": {
+      "command": "/etc/sensu/plugins/system/check-load.rb",
+      "subscribers": ["common"],
+      "interval": 180,
+      "occurrences": 2,
+      "refresh": 180,
+      "standalone": true
+    },
+    "check-load": {
+      "command": "/etc/sensu/plugins/system/check-load.rb",
+      "subscribers": ["common"],
+      "interval": 180,
+      "occurrences": 2,
+      "refresh": 180,
+      "standalone": true
+    },
     "http_ack": {
       "command": "/etc/sensu/plugins/http/check-http.rb --url http://localhost/healthcheck.html --response-code 200 ",
       "interval": 60,
@@ -7,10 +39,18 @@
       "subscribers": ["frontend"],
       "standalone": true
     },
-    "sshd_proc": {
+    "sshd-proc": {
       "command": "/etc/sensu/plugins/processes/check-procs.rb -p sshd -C 1 ",
       "subscribers": ["common"],
       "interval": 180,
+      "occurrences": 2,
+      "refresh": 180,
+      "standalone": true
+    },
+    "check-redis-info": {
+      "command": "/etc/sensu/plugins/redis/check-redis-info.rb ",
+      "subscribers": ["common"],
+      "interval": 60,
       "occurrences": 2,
       "refresh": 180,
       "standalone": true
