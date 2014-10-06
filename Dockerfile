@@ -20,8 +20,6 @@ RUN \
   rpm -ivh http://rpms.famillecollet.com/enterprise/remi-release-6.rpm ;\
   rpm -ivh http://pkgs.repoforge.org/rpmforge-release/rpmforge-release-0.5.3-1.el6.rf.x86_64.rpm
 ADD files/td.repo /etc/yum.repos.d/td.repo
-ADD files/td-agent.conf /etc/td-agent/td-agent.conf
-RUN gpasswd -a td-agent apache
 
 RUN \
   yum --enablerepo=remi,epel,treasuredata install -y \
@@ -51,17 +49,25 @@ RUN touch /etc/sysconfig/network
 
 RUN /etc/init.d/sshd start && /etc/init.d/sshd stop
 
+# apache
 RUN chmod 755 /var/log/httpd
 RUN chown apache. /var/log/httpd
 RUN echo hello > /var/www/html/index.html
 
+
+# mysql
 RUN \
   service mysqld start && \
   /usr/bin/mysqladmin -u root password "$PW"
 
 
-RUN gem install redis
+# redis
 RUN sed -ri "s/daemonize yes/daemonize no/" /etc/redis.conf
+
+
+# td-agent
+ADD files/td-agent.conf /etc/td-agent/td-agent.conf
+RUN gpasswd -a td-agent apache
 
 
 # install node.js
