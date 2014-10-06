@@ -48,6 +48,8 @@ RUN echo "$USER ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers.d/$USER
 
 RUN touch /etc/sysconfig/network
 
+RUN /etc/init.d/sshd start && /etc/init.d/sshd stop
+
 RUN chmod 755 /var/log/httpd
 RUN echo hello > /var/www/html/index.html
 
@@ -135,8 +137,8 @@ RUN find /etc/sensu/plugins/ -name "*.rb" | xargs chmod +x
 ADD ./files/client.json /etc/sensu/conf.d/
 ADD ./files/check.json /etc/sensu/conf.d/
 
+
 EXPOSE 22 80 3000 4567 5671 15672
 
-RUN /etc/init.d/sshd start && /etc/init.d/sshd stop
 CMD ["/usr/bin/supervisord"]
 
