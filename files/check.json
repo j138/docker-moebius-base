@@ -1,7 +1,7 @@
 {
   "checks":{
     "http_ack": {
-      "command": "/etc/sensu/plugins/http/check-http.rb --url http://localhost/index.html --response-code 200 ",
+      "command": "/etc/sensu/plugins/http/check-http.rb --url http://localhost/healthcheck.html --response-code 200 ",
       "interval": 60,
       "refresh": 20,
       "subscribers": ["frontend"],

@@ -83,7 +83,7 @@ RUN chown -R apache. $RBENV_ROOT
 
 RUN \
   echo 'gem: --no-rdoc --no-ri' >> /.gemrc ;\
-  gem install bundler passenger
+  gem install bundler passenger sensu-plugin
 
 ADD files/passenger.conf /etc/httpd/conf.d/passenger.conf
 
