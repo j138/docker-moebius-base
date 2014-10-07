@@ -1,42 +1,17 @@
-FROM centos:centos6
+FROM j138/centos-latest-andmore
 MAINTAINER j138
 # ENV IP __YOUR_IP_HERE__
 ENV IP 192.168.1.100
+ENV LOGSERVER 127.0.0.1
 ENV USER t00114
 ENV PW melody
 ENV HOME /root
-
-# package install
-RUN yum -y install yum-plugin-fastestmirror
-RUN echo "include_only=.jp" >> /etc/yum/pluginconf.d/fastestmirror.conf
-RUN yum update -y
-RUN yum install wget -y
-
-RUN \
-  rpm --import http://rpms.famillecollet.com/RPM-GPG-KEY-remi ;\
-  rpm --import http://dl.fedoraproject.org/pub/epel/RPM-GPG-KEY-EPEL-6 ;\
-  rpm --import http://apt.sw.be/RPM-GPG-KEY.dag.txt ;\
-  rpm -ivh http://dl.fedoraproject.org/pub/epel/6/x86_64/epel-release-6-8.noarch.rpm ;\
-  rpm -ivh http://rpms.famillecollet.com/enterprise/remi-release-6.rpm ;\
-  rpm -ivh http://pkgs.repoforge.org/rpmforge-release/rpmforge-release-0.5.3-1.el6.rf.x86_64.rpm
-ADD files/td.repo /etc/yum.repos.d/td.repo
-
-RUN \
-  yum --enablerepo=remi,epel,treasuredata install -y \
-  sudo which tar bzip2 zip unzip curl-devel git openssh-server openssh-clients syslog gcc gcc-c++ libxml2 libxml2-devel libxslt libxslt-devel readline readline-devel jemalloc jemmalloc-devel \
-  httpd httpd-devel mysql-server mysql-devel phpmyadmin sqlite sqlite-devel redis td-agent \
-  php php-devel php-pear php-mysql php-gd php-mbstring php-pecl-imagick php-pecl-memcache nodejs npm erlang
-
-RUN \
-  yum --enablerepo=remi,epel,treasuredata install -y \
-  bash-completion zsh htop vim file
 
 RUN mkdir -m 700 /root/.ssh
 
 RUN sed -ri "s/^UsePAM yes/#UsePAM yes/" /etc/ssh/sshd_config
 RUN sed -ri "s/^#UsePAM no/UsePAM no/" /etc/ssh/sshd_config
 RUN sed -rie "9i Allow from $IP" /etc/httpd/conf.d/phpmyadmin.conf
-RUN sed -ri "s/__YOUR_LOG_SERVER_HERE__/$LOGSERVER/" /etc/td-agent/td-agent.conf
 RUN sed -ri "s/cfg\['blowfish_secret'\] = ''/cfg['blowfish_secret'] = '`uuidgen`'/" /usr/share/phpmyadmin/config.inc.php
 
 
@@ -67,6 +42,7 @@ RUN sed -ri "s/daemonize yes/daemonize no/" /etc/redis.conf
 
 # td-agent
 ADD files/td-agent.conf /etc/td-agent/td-agent.conf
+RUN sed -ri "s/__YOUR_LOG_SERVER_HERE__/$LOGSERVER/" /etc/td-agent/td-agent.conf
 RUN gpasswd -a td-agent apache
 
 
@@ -123,16 +99,16 @@ RUN cp /joemiller.me-intro-to-sensu/server_cert.pem /etc/rabbitmq/ssl/cert.pem
 RUN cp /joemiller.me-intro-to-sensu/server_key.pem /etc/rabbitmq/ssl/key.pem
 RUN cp /joemiller.me-intro-to-sensu/testca/cacert.pem /etc/rabbitmq/ssl/
 ADD files/rabbitmq.config /etc/rabbitmq/
-RUN sed -ri "s/\\\$PW/$PW/" /etc/rabbitmq/rabbitmq.config
+RUN sed -ri "s/__PW__/$PW/" /etc/rabbitmq/rabbitmq.config
 RUN rabbitmq-plugins enable rabbitmq_management
 
 
 # Sensu server, uchiwa
-ADD ./files/sensu.repo /etc/yum.repos.d/
+ADD files/sensu.repo /etc/yum.repos.d/
 RUN yum install -y sensu uchiwa
 ADD ./files/uchiwa.json /etc/sensu/
 ADD ./files/config.json /etc/sensu/
-RUN sed -ri "s/\\\$PW/$PW/" /etc/sensu/config.json
+RUN sed -ri "s/__PW__/$PW/" /etc/sensu/config.json
 RUN sed -ri "s/EMBEDDED_RUBY=false/EMBEDDED_RUBY=true/" /etc/default/sensu
 
 RUN mkdir -p /etc/sensu/ssl
