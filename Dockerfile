@@ -31,6 +31,8 @@ RUN echo hello > /var/www/html/index.html
 
 
 # mysql
+ADD ./files/mysql_encoding.cnf /etc/my.cnf.d/
+
 RUN \
   service mysqld start && \
   /usr/bin/mysqladmin -u root password "$PW"
