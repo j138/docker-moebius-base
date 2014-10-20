@@ -130,6 +130,67 @@ ADD ./files/client.json /etc/sensu/conf.d/
 ADD ./files/check.json /etc/sensu/conf.d/
 
 
+# jdk
+WORKDIR /usr/local/src
+RUN curl -L -C - -b "oraclelicense=accept-securebackup-cookie" -O http://download.oracle.com/otn-pub/java/jdk/8u25-b17/jdk-8u25-linux-x64.tar.gz
+RUN tar xzf jdk-8u25-linux-x64.tar.gz
+WORKDIR cd /usr/local/src/jdk1.8.0_25/
+RUN alternatives --install /usr/bin/java java /usr/local/jdk1.8.0_25/bin/java 1
+RUN echo 1 | alternatives --config java
+
+
+# elasticsearch
+RUN rpm --import http://packages.elasticsearch.org/GPG-KEY-elasticsearch
+ADD ./files/elasticsearch.repo /etc/yum.repos.d/
+RUN yum -y install elasticsearch
+# RUN wget -q -O - https://download.elasticsearch.org/elasticsearch/elasticsearch/elasticsearch-1.3.4.tar.gz | tar -C /usr/local -xz
+# cd /usr/local/elasticsearch-1.3.4/
+
+# Use pip to install graphite, carbon, and deps
+# RUN \
+#   yum --enablerepo=remi,epel,treasuredata install -y \
+#   python python-devel python-pip pycairo python-twisted-web python-zope-interface mod_wsgi mod_python python-simplejson python-sqlite2
+
+RUN pip-python install whisper
+# RUN pip-python install Twisted==11.1.0
+RUN pip-python install Twisted==14.0.2
+RUN pip-python install --install-option="--prefix=/var/lib/graphite" --install-option="--install-lib=/var/lib/graphite/lib" carbon
+RUN pip-python install --install-option="--prefix=/var/lib/graphite" --install-option="--install-lib=/var/lib/graphite/webapp" graphite-web
+
+RUN useradd -d /home/graphite -m -s /bin/bash graphite
+RUN echo graphite:graphite | chpasswd
+RUN echo 'graphite ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers.d/graphite
+RUN chmod 0440 /etc/sudoers.d/graphite
+
+## Add graphite config
+ADD ./files/initial_data.json /var/lib/graphite/webapp/graphite/initial_data.json
+ADD ./files/local_settings.py /var/lib/graphite/webapp/graphite/local_settings.py
+ADD ./files/carbon.conf /var/lib/graphite/conf/carbon.conf
+ADD ./files/storage-schemas.conf /var/lib/graphite/conf/storage-schemas.conf
+RUN mkdir -p /var/lib/graphite/storage/whisper
+RUN touch /var/lib/graphite/storage/graphite.db /var/lib/graphite/storage/index
+RUN chown -R apache /var/lib/graphite/storage
+RUN chmod 0775 /var/lib/graphite/storage /var/lib/graphite/storage/whisper
+RUN chmod 0664 /var/lib/graphite/storage/graphite.db
+
+WORKDIR /var/lib/graphite/webapp/graphite
+RUN python manage.py syncdb --noinput
+
+# Install & Patch Grafana
+RUN \
+  git clone https://github.com/grafana/grafana.git /usr/local/src/grafana && \
+  cd /usr/local/src/grafana && \
+  git checkout v1.7.0
+WORKDIR /usr/local/src/graphite
+
+ADD ./files/correctly-show-urlencoded-metrics.patch /usr/local/src/grafana/correctly-show-urlencoded-metrics.patch
+RUN git apply /usr/local/src/grafana/correctly-show-urlencoded-metrics.patch --directory=/usr/local/src/grafana
+
+RUN \
+  cd /usr/local/src/grafana &&\
+  npm install &&\
+  grunt build
+
 EXPOSE 22 80 3000 4567 5671 15672
 
 CMD ["/usr/bin/supervisord"]
