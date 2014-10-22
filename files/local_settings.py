@@ -42,3 +42,4 @@ TIME_ZONE = 'UTC'
 #DATABASE_PORT = '3306'
 
 STATIC_URL='/usr/lib/python2.6/site-packages/django/contrib/admin/static/admin/'
+SECRET_KEY = 'SECRET_KEYYYYYY'

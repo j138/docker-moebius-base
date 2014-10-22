@@ -159,36 +159,47 @@ RUN echo 'graphite ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers.d/graphite
 RUN chmod 0440 /etc/sudoers.d/graphite
 
 ## Add graphite config
-ADD ./files/initial_data.json /var/lib/graphite/webapp/graphite/initial_data.json
-ADD ./files/local_settings.py /var/lib/graphite/webapp/graphite/local_settings.py
-ADD ./files/carbon.conf /var/lib/graphite/conf/carbon.conf
-ADD ./files/storage-schemas.conf /var/lib/graphite/conf/storage-schemas.conf
-RUN mkdir -p /var/lib/graphite/storage/whisper
-RUN touch /var/lib/graphite/storage/graphite.db /var/lib/graphite/storage/index
-RUN chown -R apache /var/lib/graphite/storage
-RUN chmod 0775 /var/lib/graphite/storage /var/lib/graphite/storage/whisper
-RUN chmod 0664 /var/lib/graphite/storage/graphite.db
+ENV GRAPHITE_PATH /var/lib/graphite
+ADD ./files/initial_data.json $GRAPHITE_PATH/webapp/graphite/initial_data.json
+ADD ./files/local_settings.py $GRAPHITE_PATH/webapp/graphite/local_settings.py
+ADD ./files/carbon.conf $GRAPHITE_PATH/conf/carbon.conf
+ADD ./files/storage-schemas.conf $GRAPHITE_PATH/conf/storage-schemas.conf
+ADD ./files/graphite.wsgi $GRAPHITE_PATH/conf/graphite.wsgi
+RUN sed -ri "s#__GRAPHITE_PATH__#$GRAPHITE_PATH#" $GRAPHITE_PATH/conf/carbon.conf
+RUN sed -ri "s#__GRAPHITE_PATH__#$GRAPHITE_PATH#" $GRAPHITE_PATH/conf/graphite.wsgi
+RUN sed -ri "s/LoadModule python_module/#LoadModule python_module/" /etc/httpd/conf.d/python.conf
 
-WORKDIR /var/lib/graphite/webapp/graphite
+RUN \
+  mkdir -p $GRAPHITE_PATH/storage/whisper ;\
+  touch $GRAPHITE_PATH/storage/graphite.db $GRAPHITE_PATH/storage/index ;\
+  chown -R apache $GRAPHITE_PATH/storage ;\
+  chmod 0775 $GRAPHITE_PATH/storage $GRAPHITE_PATH/storage/whisper ;\
+  chmod 0664 $GRAPHITE_PATH/storage/graphite.db
+
+WORKDIR $GRAPHITE_PATH/webapp/graphite
 RUN python manage.py syncdb --noinput
+
+# graphite-web
+RUN mkdir /etc/httpd/wsgi/
+ADD ./files/graphite.conf /etc/httpd/conf.d/graphite.conf
+RUN sed -ri "s#__GRAPHITE_PATH__#$GRAPHITE_PATH#" /etc/httpd/conf.d/graphite.conf
 
 
 # Install & Patch Grafana
 RUN \
-  git clone https://github.com/grafana/grafana.git /usr/local/src/grafana && \
-  cd /usr/local/src/grafana && \
+  git clone https://github.com/grafana/grafana.git /usr/local/grafana && \
+  cd /usr/local/grafana && \
   git checkout v1.7.0
-WORKDIR /usr/local/src/graphite
+WORKDIR /usr/local/graphite
 
-ADD ./files/correctly-show-urlencoded-metrics.patch /usr/local/src/grafana/correctly-show-urlencoded-metrics.patch
-RUN git apply /usr/local/src/grafana/correctly-show-urlencoded-metrics.patch --directory=/usr/local/src/grafana
+ADD ./files/correctly-show-urlencoded-metrics.patch /usr/local/grafana/correctly-show-urlencoded-metrics.patch
+RUN git apply /usr/local/grafana/correctly-show-urlencoded-metrics.patch --directory=/usr/local/grafana
 
 RUN \
-  cd /usr/local/src/grafana &&\
+  cd /usr/local/grafana &&\
   npm install &&\
   grunt build
 
-EXPOSE 22 80 3000 4567 5671 15672 9001
+EXPOSE 22 80 3000 4567 5671 15672 9001 8080
 
 CMD ["/usr/bin/supervisord"]
-
