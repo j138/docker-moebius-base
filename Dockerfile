@@ -1,7 +1,7 @@
 FROM j138/centos-latest-andmore
 MAINTAINER j138
 # ENV IP __YOUR_IP_HERE__
-ENV IP 192.168.1.100
+ENV IP 192.168.54.100
 ENV LOGSERVER 127.0.0.1
 ENV USER t00114
 ENV PW melody
@@ -55,8 +55,7 @@ RUN npm install -g grunt-bower-task grunt-contrib-csslint grunt-contrib-cssmin g
 
 # install ruby
 ENV RBENV_ROOT /usr/local/rbenv
-ENV PATH $RBENV_ROOT/bin:$PATH
-ENV PATH $RBENV_ROOT/shims:$PATH
+ENV PATH $RBENV_ROOT/bin:$RBENV_ROOT/shims:$PATH
 RUN echo "export RBENV_ROOT=$RBENV_ROOT" >> /etc/profile.d/rbenv.sh
 RUN echo 'export PATH='$RBENV_ROOT'/bin:$PATH' >> /etc/profile.d/rbenv.sh
 RUN echo 'eval "$(rbenv init -)"' >> /etc/profile.d/rbenv.sh
@@ -117,7 +116,7 @@ RUN mkdir -p /etc/sensu/ssl
 RUN cp /joemiller.me-intro-to-sensu/client_cert.pem /etc/sensu/ssl/cert.pem
 RUN cp /joemiller.me-intro-to-sensu/client_key.pem /etc/sensu/ssl/key.pem
 
-# sensu plugin
+# Sensu plugin
 RUN git clone https://github.com/sensu/sensu-community-plugins /usr/local/sensu-community-plugins
 WORKDIR /usr/local/sensu-community-plugins
 RUN bundle install --path vendor/bundle
@@ -143,8 +142,6 @@ RUN echo 1 | alternatives --config java
 RUN rpm --import http://packages.elasticsearch.org/GPG-KEY-elasticsearch
 ADD ./files/elasticsearch.repo /etc/yum.repos.d/
 RUN yum -y install elasticsearch
-# RUN wget -q -O - https://download.elasticsearch.org/elasticsearch/elasticsearch/elasticsearch-1.3.4.tar.gz | tar -C /usr/local -xz
-# cd /usr/local/elasticsearch-1.3.4/
 
 # Use pip to install graphite, carbon, and deps
 # RUN \
@@ -152,7 +149,6 @@ RUN yum -y install elasticsearch
 #   python python-devel python-pip pycairo python-twisted-web python-zope-interface mod_wsgi mod_python python-simplejson python-sqlite2
 
 RUN pip-python install whisper
-# RUN pip-python install Twisted==11.1.0
 RUN pip-python install Twisted==14.0.2
 RUN pip-python install --install-option="--prefix=/var/lib/graphite" --install-option="--install-lib=/var/lib/graphite/lib" carbon
 RUN pip-python install --install-option="--prefix=/var/lib/graphite" --install-option="--install-lib=/var/lib/graphite/webapp" graphite-web
@@ -175,6 +171,7 @@ RUN chmod 0664 /var/lib/graphite/storage/graphite.db
 
 WORKDIR /var/lib/graphite/webapp/graphite
 RUN python manage.py syncdb --noinput
+
 
 # Install & Patch Grafana
 RUN \
