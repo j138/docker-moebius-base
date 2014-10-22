@@ -134,7 +134,7 @@ WORKDIR /usr/local/src
 RUN curl -L -C - -b "oraclelicense=accept-securebackup-cookie" -O http://download.oracle.com/otn-pub/java/jdk/8u25-b17/jdk-8u25-linux-x64.tar.gz
 RUN tar xzf jdk-8u25-linux-x64.tar.gz
 WORKDIR cd /usr/local/src/jdk1.8.0_25/
-RUN alternatives --install /usr/bin/java java /usr/local/jdk1.8.0_25/bin/java 1
+RUN alternatives --install /usr/bin/java java /usr/local/src/jdk1.8.0_25/bin/java 1
 RUN echo 1 | alternatives --config java
 
 
@@ -188,7 +188,7 @@ RUN \
   npm install &&\
   grunt build
 
-EXPOSE 22 80 3000 4567 5671 15672
+EXPOSE 22 80 3000 4567 5671 15672 9001
 
 CMD ["/usr/bin/supervisord"]
 
