@@ -34,12 +34,16 @@ TIME_ZONE = 'UTC'
 #LDAP_USER_QUERY = "(username=%s)"  #For Active Directory use "(sAMAccountName=%s)"
 
 # If sqlite won't cut it, configure your real database here (don't forget to run manage.py syncdb!)
-#DATABASE_ENGINE = 'mysql' # or 'postgres'
-#DATABASE_NAME = 'graphite'
-#DATABASE_USER = 'graphite'
-#DATABASE_PASSWORD = 'graphite-is-awesome'
-#DATABASE_HOST = 'mysql.mycompany.com'
-#DATABASE_PORT = '3306'
+DATABASES = {
+    'default': {
+    'NAME': 'graphite',
+    'ENGINE': 'django.db.backends.mysql',
+    'USER': 'graphite',
+    'PASSWORD': '__PW__',
+    'HOST': 'localhost',
+    'PORT': '3306'
+    }
+}
 
 STATIC_URL='/usr/lib/python2.6/site-packages/django/contrib/admin/static/admin/'
 SECRET_KEY = 'SECRET_KEYYYYYY'

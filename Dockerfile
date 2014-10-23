@@ -148,10 +148,13 @@ RUN yum -y install elasticsearch
 #   yum --enablerepo=remi,epel,treasuredata install -y \
 #   python python-devel python-pip pycairo python-twisted-web python-zope-interface mod_wsgi mod_python python-simplejson python-sqlite2
 
-RUN pip-python install whisper
-RUN pip-python install Twisted==14.0.2
-RUN pip-python install --install-option="--prefix=/var/lib/graphite" --install-option="--install-lib=/var/lib/graphite/lib" carbon
-RUN pip-python install --install-option="--prefix=/var/lib/graphite" --install-option="--install-lib=/var/lib/graphite/webapp" graphite-web
+RUN \
+  pip-python install whisper && \
+  pip-python install daemonize && \
+  pip-python install mysql-python && \
+  pip-python install http://twistedmatrix.com/Releases/Twisted/13.0/Twisted-13.0.0.tar.bz2 && \
+  pip-python install --install-option="--prefix=/var/lib/graphite" --install-option="--install-lib=/var/lib/graphite/lib" carbon && \
+  pip-python install --install-option="--prefix=/var/lib/graphite" --install-option="--install-lib=/var/lib/graphite/webapp" graphite-web
 
 RUN useradd -d /home/graphite -m -s /bin/bash graphite
 RUN echo graphite:graphite | chpasswd
@@ -165,33 +168,45 @@ ADD ./files/local_settings.py $GRAPHITE_PATH/webapp/graphite/local_settings.py
 ADD ./files/carbon.conf $GRAPHITE_PATH/conf/carbon.conf
 ADD ./files/storage-schemas.conf $GRAPHITE_PATH/conf/storage-schemas.conf
 ADD ./files/graphite.wsgi $GRAPHITE_PATH/conf/graphite.wsgi
-RUN sed -ri "s#__GRAPHITE_PATH__#$GRAPHITE_PATH#" $GRAPHITE_PATH/conf/carbon.conf
-RUN sed -ri "s#__GRAPHITE_PATH__#$GRAPHITE_PATH#" $GRAPHITE_PATH/conf/graphite.wsgi
-RUN sed -ri "s/LoadModule python_module/#LoadModule python_module/" /etc/httpd/conf.d/python.conf
+
+RUN \
+  sed -ri "s#__GRAPHITE_PATH__#$GRAPHITE_PATH#" $GRAPHITE_PATH/conf/carbon.conf ;\
+  sed -ri "s#__GRAPHITE_PATH__#$GRAPHITE_PATH#" $GRAPHITE_PATH/conf/graphite.wsgi ;\
+  sed -ri "s/LoadModule python_module/#LoadModule python_module/" /etc/httpd/conf.d/python.conf ;\
+  sed -ri "s/__PW__/$PW/" $GRAPHITE_PATH/webapp/graphite/local_settings.py
 
 RUN \
   mkdir -p $GRAPHITE_PATH/storage/whisper ;\
-  touch $GRAPHITE_PATH/storage/graphite.db $GRAPHITE_PATH/storage/index ;\
+  touch $GRAPHITE_PATH/storage/graphite.db $GRAPHITE_PATH/storage/index /etc/carbon/storage-aggregation.conf ;\
   chown -R apache $GRAPHITE_PATH/storage ;\
   chmod 0775 $GRAPHITE_PATH/storage $GRAPHITE_PATH/storage/whisper ;\
-  chmod 0664 $GRAPHITE_PATH/storage/graphite.db
+  chmod 0664 $GRAPHITE_PATH/storage/graphite.db;
 
 WORKDIR $GRAPHITE_PATH/webapp/graphite
-RUN python manage.py syncdb --noinput
+
+RUN \
+  service mysqld start && \
+  mysql -uroot -p$PW -e " \
+  CREATE USER 'graphite'@'localhost' IDENTIFIED BY 'melody'; \
+  GRANT ALL PRIVILEGES ON graphite.* TO 'graphite'@'localhost'; \
+  CREATE DATABASE graphite; \
+  FLUSH PRIVILEGES; \
+  "; \
+  python manage.py syncdb --noinput
 
 # graphite-web
-RUN mkdir /etc/httpd/wsgi/
 ADD ./files/graphite.conf /etc/httpd/conf.d/graphite.conf
-RUN sed -ri "s#__GRAPHITE_PATH__#$GRAPHITE_PATH#" /etc/httpd/conf.d/graphite.conf
-
+RUN \
+  mkdir /etc/httpd/wsgi/ ;\
+  sed -ri "s#__GRAPHITE_PATH__#$GRAPHITE_PATH#" /etc/httpd/conf.d/graphite.conf
 
 # Install & Patch Grafana
 RUN \
   git clone https://github.com/grafana/grafana.git /usr/local/grafana && \
   cd /usr/local/grafana && \
   git checkout v1.7.0
-WORKDIR /usr/local/graphite
 
+WORKDIR /usr/local/graphite
 ADD ./files/correctly-show-urlencoded-metrics.patch /usr/local/grafana/correctly-show-urlencoded-metrics.patch
 RUN git apply /usr/local/grafana/correctly-show-urlencoded-metrics.patch --directory=/usr/local/grafana
 
