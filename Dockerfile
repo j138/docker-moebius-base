@@ -9,25 +9,27 @@ ENV HOME /root
 
 RUN mkdir -m 700 /root/.ssh
 
-RUN sed -ri "s/^UsePAM yes/#UsePAM yes/" /etc/ssh/sshd_config
-RUN sed -ri "s/^#UsePAM no/UsePAM no/" /etc/ssh/sshd_config
-RUN sed -rie "9i Allow from $IP" /etc/httpd/conf.d/phpmyadmin.conf
-RUN sed -ri "s/cfg\['blowfish_secret'\] = ''/cfg['blowfish_secret'] = '`uuidgen`'/" /usr/share/phpmyadmin/config.inc.php
+RUN \
+  sed -ri "s/^UsePAM yes/#UsePAM yes/" /etc/ssh/sshd_config ;\
+  sed -ri "s/^#UsePAM no/UsePAM no/" /etc/ssh/sshd_config ;\
+  sed -rie "9i Allow from $IP" /etc/httpd/conf.d/phpmyadmin.conf ;\
+  sed -ri "s/cfg\['blowfish_secret'\] = ''/cfg['blowfish_secret'] = '`uuidgen`'/" /usr/share/phpmyadmin/config.inc.php
 
 
 # sshでログインするユーザーを用意
-RUN useradd $USER
-RUN echo "$USER:$PW" | chpasswd
-RUN echo "$USER ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers.d/$USER
+RUN \
+  useradd $USER ;\
+  echo "$USER:$PW" | chpasswd ;\
+  echo "$USER ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers.d/$USER ;\
+  touch /etc/sysconfig/network ;\
+  /etc/init.d/sshd start && /etc/init.d/sshd stop
 
-RUN touch /etc/sysconfig/network
-
-RUN /etc/init.d/sshd start && /etc/init.d/sshd stop
 
 # apache
-RUN chmod 755 /var/log/httpd
-RUN chown apache. /var/log/httpd
-RUN echo hello > /var/www/html/index.html
+RUN \
+  chmod 755 /var/log/httpd ;\
+  chown apache. /var/log/httpd ;\
+  echo hello > /var/www/html/index.html
 
 
 # mysql
@@ -44,25 +46,29 @@ RUN sed -ri "s/daemonize yes/daemonize no/" /etc/redis.conf
 
 # td-agent
 ADD files/td-agent.conf /etc/td-agent/td-agent.conf
-RUN sed -ri "s/__YOUR_LOG_SERVER_HERE__/$LOGSERVER/" /etc/td-agent/td-agent.conf
-RUN gpasswd -a td-agent apache
+RUN \
+  sed -ri "s/__YOUR_LOG_SERVER_HERE__/$LOGSERVER/" /etc/td-agent/td-agent.conf ;\
+  gpasswd -a td-agent apache
 
 
 # install node.js
-RUN npm install -g grunt grunt-cli sass coffee-script bower
-RUN npm install -g grunt-bower-task grunt-contrib-csslint grunt-contrib-cssmin grunt-contrib-watch grunt-contrib-uglify grunt-contrib-concat grunt-contrib-compass --save-dev
+RUN \
+  npm install -g grunt grunt-cli sass coffee-script bower ;\
+  npm install -g grunt-bower-task grunt-contrib-csslint grunt-contrib-cssmin grunt-contrib-watch grunt-contrib-uglify grunt-contrib-concat grunt-contrib-compass --save-dev
 
 
 # install ruby
 ENV RBENV_ROOT /usr/local/rbenv
 ENV PATH $RBENV_ROOT/bin:$RBENV_ROOT/shims:$PATH
-RUN echo "export RBENV_ROOT=$RBENV_ROOT" >> /etc/profile.d/rbenv.sh
-RUN echo 'export PATH='$RBENV_ROOT'/bin:$PATH' >> /etc/profile.d/rbenv.sh
-RUN echo 'eval "$(rbenv init -)"' >> /etc/profile.d/rbenv.sh
+RUN \
+  echo "export RBENV_ROOT=$RBENV_ROOT" >> /etc/profile.d/rbenv.sh ;\
+  echo 'export PATH='$RBENV_ROOT'/bin:$PATH' >> /etc/profile.d/rbenv.sh ;\
+  echo 'eval "$(rbenv init -)"' >> /etc/profile.d/rbenv.sh
 
-RUN git clone https://github.com/sstephenson/rbenv.git $RBENV_ROOT
-RUN git clone https://github.com/sstephenson/ruby-build.git $RBENV_ROOT/plugins/ruby-build
-RUN $RBENV_ROOT/plugins/ruby-build/install.sh
+RUN \
+  git clone https://github.com/sstephenson/rbenv.git $RBENV_ROOT ;\
+  git clone https://github.com/sstephenson/ruby-build.git $RBENV_ROOT/plugins/ruby-build ;\
+  $RBENV_ROOT/plugins/ruby-build/install.sh
 
 RUN \
   rbenv install 2.1.3 ;\
@@ -83,25 +89,30 @@ RUN \
 
 
 # supervisord
-RUN wget http://peak.telecommunity.com/dist/ez_setup.py;python ez_setup.py
-RUN easy_install supervisor
-RUN mkdir /etc/supervisord/
-RUN mkdir /var/log/supervisord
+RUN \
+  wget http://peak.telecommunity.com/dist/ez_setup.py ;\
+  python ez_setup.py ;\
+  easy_install supervisor ;\
+  mkdir /etc/supervisord/ /var/log/supervisord
+
 ADD files/supervisord.conf /etc/supervisord.conf
 
 
 # RabbitMQ
-RUN rpm --import http://www.rabbitmq.com/rabbitmq-signing-key-public.asc
-RUN rpm -Uvh http://www.rabbitmq.com/releases/rabbitmq-server/v3.1.4/rabbitmq-server-3.1.4-1.noarch.rpm
-RUN git clone https://github.com/joemiller/joemiller.me-intro-to-sensu.git
-RUN cd joemiller.me-intro-to-sensu/; ./ssl_certs.sh clean && ./ssl_certs.sh generate
-RUN mkdir /etc/rabbitmq/ssl
-RUN cp /joemiller.me-intro-to-sensu/server_cert.pem /etc/rabbitmq/ssl/cert.pem
-RUN cp /joemiller.me-intro-to-sensu/server_key.pem /etc/rabbitmq/ssl/key.pem
-RUN cp /joemiller.me-intro-to-sensu/testca/cacert.pem /etc/rabbitmq/ssl/
+RUN \
+    rpm --import http://www.rabbitmq.com/rabbitmq-signing-key-public.asc ;\
+    rpm -Uvh http://www.rabbitmq.com/releases/rabbitmq-server/v3.1.4/rabbitmq-server-3.1.4-1.noarch.rpm ;\
+    git clone https://github.com/joemiller/joemiller.me-intro-to-sensu.git ;\
+    cd joemiller.me-intro-to-sensu/; ./ssl_certs.sh clean && ./ssl_certs.sh generate ;\
+    mkdir /etc/rabbitmq/ssl ;\
+    cp /joemiller.me-intro-to-sensu/server_cert.pem /etc/rabbitmq/ssl/cert.pem ;\
+    cp /joemiller.me-intro-to-sensu/server_key.pem /etc/rabbitmq/ssl/key.pem ;\
+    cp /joemiller.me-intro-to-sensu/testca/cacert.pem /etc/rabbitmq/ssl/
+
 ADD files/rabbitmq.config /etc/rabbitmq/
-RUN sed -ri "s/__PW__/$PW/" /etc/rabbitmq/rabbitmq.config
-RUN rabbitmq-plugins enable rabbitmq_management
+RUN \
+  sed -ri "s/__PW__/$PW/" /etc/rabbitmq/rabbitmq.config ;\
+  rabbitmq-plugins enable rabbitmq_management
 
 
 # Sensu server, uchiwa
