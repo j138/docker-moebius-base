@@ -40,6 +40,18 @@ RUN \
   /usr/bin/mysqladmin -u root password "$PW"
 
 
+# jdk
+RUN curl -L -C - -b "oraclelicense=accept-securebackup-cookie" -O http://download.oracle.com/otn-pub/java/jdk/8u25-b17/jdk-8u25-linux-x64.tar.gz
+RUN tar xzf jdk-8u25-linux-x64.tar.gz -C /usr/local/src
+RUN alternatives --install /usr/bin/java java /usr/local/src/jdk1.8.0_25/bin/java 1
+RUN echo 1 | alternatives --config java
+
+# elasticsearch
+RUN rpm --import http://packages.elasticsearch.org/GPG-KEY-elasticsearch
+ADD ./files/elasticsearch.repo /etc/yum.repos.d/
+RUN yum -y install elasticsearch
+
+
 # redis
 RUN sed -ri "s/daemonize yes/daemonize no/" /etc/redis.conf
 
@@ -88,16 +100,6 @@ RUN \
   passenger-install-apache2-module --snippet >> /etc/httpd/conf.d/passenger.conf
 
 
-# supervisord
-RUN \
-  wget http://peak.telecommunity.com/dist/ez_setup.py ;\
-  python ez_setup.py ;\
-  easy_install supervisor ;\
-  mkdir /etc/supervisord/ /var/log/supervisord
-
-ADD files/supervisord.conf /etc/supervisord.conf
-
-
 # RabbitMQ
 RUN \
     rpm --import http://www.rabbitmq.com/rabbitmq-signing-key-public.asc ;\
@@ -140,18 +142,14 @@ ADD ./files/client.json /etc/sensu/conf.d/
 ADD ./files/check.json /etc/sensu/conf.d/
 
 
-# jdk
-WORKDIR /usr/local/src
-RUN curl -L -C - -b "oraclelicense=accept-securebackup-cookie" -O http://download.oracle.com/otn-pub/java/jdk/8u25-b17/jdk-8u25-linux-x64.tar.gz
-RUN tar xzf jdk-8u25-linux-x64.tar.gz
-WORKDIR cd /usr/local/src/jdk1.8.0_25/
-RUN alternatives --install /usr/bin/java java /usr/local/src/jdk1.8.0_25/bin/java 1
-RUN echo 1 | alternatives --config java
+# supervisord
+RUN \
+  wget http://peak.telecommunity.com/dist/ez_setup.py ;\
+  python ez_setup.py ;\
+  easy_install supervisor ;\
+  mkdir /etc/supervisord/ /var/log/supervisord
 
-# elasticsearch
-RUN rpm --import http://packages.elasticsearch.org/GPG-KEY-elasticsearch
-ADD ./files/elasticsearch.repo /etc/yum.repos.d/
-RUN yum -y install elasticsearch
+ADD files/supervisord.conf /etc/supervisord.conf
 
 
 # sensu       : 4567, 5671
@@ -159,5 +157,5 @@ RUN yum -y install elasticsearch
 # supervisord : 9001
 # apache      : 8080
 EXPOSE 22 80 4567 5671 15672 9001 8080
-
+ 
 CMD ["/usr/bin/supervisord"]
