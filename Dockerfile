@@ -41,10 +41,15 @@ RUN \
 
 
 # jdk
-RUN curl -L -C - -b "oraclelicense=accept-securebackup-cookie" -O http://download.oracle.com/otn-pub/java/jdk/8u25-b17/jdk-8u25-linux-x64.tar.gz
-RUN tar xzf jdk-8u25-linux-x64.tar.gz -C /usr/local/src
-RUN alternatives --install /usr/bin/java java /usr/local/src/jdk1.8.0_25/bin/java 1
-RUN echo 1 | alternatives --config java
+# ウェブから落とす場合とで使い分ける
+#ADD ./src/jdk-8u25-linux-x64.tar.gz /usr/local/src/
+RUN \
+  cd /usr/local/src && \
+  curl -L -C - -b "oraclelicense=accept-securebackup-cookie" -O http://download.oracle.com/otn-pub/java/jdk/8u25-b17/jdk-8u25-linux-x64.tar.gz && \
+  tar xzf jdk-8u25-linux-x64.tar.gz -C /usr/local/src && \
+  alternatives --install /usr/bin/java java /usr/local/src/jdk1.8.0_25/bin/java 1 && \
+  echo 1 | alternatives --config java
+
 
 # elasticsearch
 RUN rpm --import http://packages.elasticsearch.org/GPG-KEY-elasticsearch
@@ -149,7 +154,7 @@ RUN \
   easy_install supervisor ;\
   mkdir /etc/supervisord/ /var/log/supervisord
 
-ADD files/supervisord.conf /etc/supervisord.conf
+ADD ./files/supervisord.conf /etc/supervisord.conf
 
 
 # sensu       : 4567, 5671
