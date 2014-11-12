@@ -7,9 +7,8 @@ ENV USER t00114
 ENV PW melody
 ENV HOME /root
 
-RUN mkdir -m 700 /root/.ssh
-
 RUN \
+  mkdir -m 700 /root/.ssh ;\
   sed -ri "s/^UsePAM yes/#UsePAM yes/" /etc/ssh/sshd_config ;\
   sed -ri "s/^#UsePAM no/UsePAM no/" /etc/ssh/sshd_config ;\
   sed -rie "9i Allow from $IP" /etc/httpd/conf.d/phpmyadmin.conf ;\
@@ -62,7 +61,7 @@ RUN sed -ri "s/daemonize yes/daemonize no/" /etc/redis.conf
 
 
 # td-agent
-ADD files/td-agent.conf /etc/td-agent/td-agent.conf
+ADD ./files/td-agent.conf /etc/td-agent/td-agent.conf
 RUN \
   sed -ri "s/__YOUR_LOG_SERVER_HERE__/$LOGSERVER/" /etc/td-agent/td-agent.conf ;\
   gpasswd -a td-agent apache
@@ -97,7 +96,7 @@ RUN \
   echo 'gem: --no-rdoc --no-ri' >> /.gemrc ;\
   gem install bundler passenger sensu-plugin redis ruby-supervisor
 
-ADD files/passenger.conf /etc/httpd/conf.d/passenger.conf
+ADD ./files/passenger.conf /etc/httpd/conf.d/passenger.conf
 
 RUN \
   eval "$(rbenv init -)" ;\
@@ -116,14 +115,14 @@ RUN \
     cp /joemiller.me-intro-to-sensu/server_key.pem /etc/rabbitmq/ssl/key.pem ;\
     cp /joemiller.me-intro-to-sensu/testca/cacert.pem /etc/rabbitmq/ssl/
 
-ADD files/rabbitmq.config /etc/rabbitmq/
+ADD ./files/rabbitmq.config /etc/rabbitmq/
 RUN \
   sed -ri "s/__PW__/$PW/" /etc/rabbitmq/rabbitmq.config ;\
   rabbitmq-plugins enable rabbitmq_management
 
 
 # Sensu server, uchiwa
-ADD files/sensu.repo /etc/yum.repos.d/
+ADD ./files/sensu.repo /etc/yum.repos.d/
 RUN yum install -y sensu uchiwa
 ADD ./files/uchiwa.json /etc/sensu/
 ADD ./files/config.json /etc/sensu/
