@@ -26,8 +26,9 @@ RUN \
 
 # apache
 RUN \
-  chmod 755 /var/log/httpd ;\
-  chown apache. /var/log/httpd ;\
+  rm -rf /var/log/httpd ;\
+  mkdir /var/log/httpd ;\
+  chown apache /var/log/httpd ;\
   echo hello > /var/www/html/index.html
 
 
@@ -64,7 +65,8 @@ RUN sed -ri "s/daemonize yes/daemonize no/" /etc/redis.conf
 ADD ./files/td-agent.conf /etc/td-agent/td-agent.conf
 RUN \
   sed -ri "s/__YOUR_LOG_SERVER_HERE__/$LOGSERVER/" /etc/td-agent/td-agent.conf ;\
-  gpasswd -a td-agent apache
+  gpasswd -a td-agent apache ;\
+  /usr/lib64/fluent/ruby/bin/fluent-gem install fluent-plugin-elasticsearch
 
 
 # install node.js
