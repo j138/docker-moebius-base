@@ -18,6 +18,7 @@ RUN \
 # sshでログインするユーザーを用意
 RUN \
   useradd $USER ;\
+  usermod -G $USER,apache $USER ;\
   echo "$USER:$PW" | chpasswd ;\
   echo "$USER ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers.d/$USER ;\
   touch /etc/sysconfig/network ;\
