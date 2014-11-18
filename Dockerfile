@@ -35,7 +35,6 @@ RUN \
 
 # mysql
 ADD ./files/mysql_encoding.cnf /etc/my.cnf.d/
-
 RUN \
   service mysqld start && \
   /usr/bin/mysqladmin -u root password "$PW"
@@ -45,17 +44,18 @@ RUN \
 # ウェブから落とす場合とで使い分ける
 #ADD ./src/jdk-8u25-linux-x64.tar.gz /usr/local/src/
 RUN \
-  cd /usr/local/src && \
-  curl -L -C - -b "oraclelicense=accept-securebackup-cookie" -O http://download.oracle.com/otn-pub/java/jdk/8u25-b17/jdk-8u25-linux-x64.tar.gz && \
-  tar xzf jdk-8u25-linux-x64.tar.gz -C /usr/local/src && \
-  alternatives --install /usr/bin/java java /usr/local/src/jdk1.8.0_25/bin/java 1 && \
+  cd /usr/local/src ;\
+  curl -L -C - -b "oraclelicense=accept-securebackup-cookie" -O http://download.oracle.com/otn-pub/java/jdk/8u25-b17/jdk-8u25-linux-x64.tar.gz ;\
+  tar xzf jdk-8u25-linux-x64.tar.gz -C /usr/local/src ;\
+  alternatives --install /usr/bin/java java /usr/local/src/jdk1.8.0_25/bin/java 1 ;\
   echo 1 | alternatives --config java
 
 
 # elasticsearch
-RUN rpm --import http://packages.elasticsearch.org/GPG-KEY-elasticsearch
 ADD ./files/elasticsearch.repo /etc/yum.repos.d/
-RUN yum -y install elasticsearch
+RUN \
+  rpm --import http://packages.elasticsearch.org/GPG-KEY-elasticsearch \
+  yum -y install elasticsearch
 
 
 # redis
@@ -135,6 +135,7 @@ RUN sed -ri "s/EMBEDDED_RUBY=false/EMBEDDED_RUBY=true/" /etc/default/sensu
 RUN mkdir -p /etc/sensu/ssl
 RUN cp /joemiller.me-intro-to-sensu/client_cert.pem /etc/sensu/ssl/cert.pem
 RUN cp /joemiller.me-intro-to-sensu/client_key.pem /etc/sensu/ssl/key.pem
+
 
 # Sensu plugin
 RUN git clone https://github.com/sensu/sensu-community-plugins /usr/local/sensu-community-plugins
