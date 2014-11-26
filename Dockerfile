@@ -97,7 +97,7 @@ RUN chown -R apache. $RBENV_ROOT
 
 RUN \
   echo 'gem: --no-rdoc --no-ri' >> /.gemrc ;\
-  gem install bundler passenger sensu-plugin redis ruby-supervisor
+  gem install bundler passenger sensu-plugin redis ruby-supervisor rubocop tmuxinator
 
 ADD ./files/passenger.conf /etc/httpd/conf.d/passenger.conf
 
