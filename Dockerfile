@@ -90,8 +90,8 @@ RUN \
   $RBENV_ROOT/plugins/ruby-build/install.sh
 
 RUN \
-  rbenv install 2.1.3 ;\
-  rbenv global 2.1.3
+  rbenv install 2.1.5 ;\
+  rbenv global 2.1.5
 
 RUN chown -R apache. $RBENV_ROOT
 
