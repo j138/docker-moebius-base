@@ -67,7 +67,7 @@ ADD ./files/td-agent.conf /etc/td-agent/td-agent.conf
 RUN \
   sed -ri "s/__YOUR_LOG_SERVER_HERE__/$LOGSERVER/" /etc/td-agent/td-agent.conf ;\
   gpasswd -a td-agent apache ;\
-  /usr/lib64/fluent/ruby/bin/fluent-gem install fluent-plugin-elasticsearch
+  /usr/lib64/fluent/ruby/bin/fluent-gem install fluent-plugin-elasticsearch haml-lint
 
 
 # install node.js
