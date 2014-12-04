@@ -67,7 +67,7 @@ ADD ./files/td-agent.conf /etc/td-agent/td-agent.conf
 RUN \
   sed -ri "s/__YOUR_LOG_SERVER_HERE__/$LOGSERVER/" /etc/td-agent/td-agent.conf ;\
   gpasswd -a td-agent apache ;\
-  /usr/lib64/fluent/ruby/bin/fluent-gem install fluent-plugin-elasticsearch haml-lint
+  /usr/lib64/fluent/ruby/bin/fluent-gem install fluent-plugin-elasticsearch
 
 
 # install node.js
@@ -97,7 +97,7 @@ RUN chown -R apache. $RBENV_ROOT
 
 RUN \
   echo 'gem: --no-rdoc --no-ri' >> /.gemrc ;\
-  gem install bundler passenger sensu-plugin redis ruby-supervisor rubocop
+  gem install bundler passenger sensu-plugin redis ruby-supervisor rubocop haml-lint
 
 ADD ./files/passenger.conf /etc/httpd/conf.d/passenger.conf
 
