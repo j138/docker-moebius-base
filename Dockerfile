@@ -104,7 +104,9 @@ ADD ./files/passenger.conf /etc/httpd/conf.d/passenger.conf
 RUN \
   eval "$(rbenv init -)" ;\
   passenger-install-apache2-module -a ;\
-  passenger-install-apache2-module --snippet >> /etc/httpd/conf.d/passenger.conf
+  passenger-install-apache2-module --snippet >> /etc/httpd/conf.d/passenger.conf ;\
+  echo "export SECRET_KEY_BASE=__SECRET_KEY_BASE__" >> /etc/profile.d/rails.sh ;\
+  chmod +x /etc/profile.d/rails.sh
 
 
 # RabbitMQ
