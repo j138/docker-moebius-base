@@ -91,12 +91,15 @@ RUN \
 
 RUN \
   rbenv install 2.1.5 ;\
-  rbenv global 2.1.5
+  rbenv rehash ;\
+  rbenv global 2.1.5; \
+  chmod -R 775 /usr/local/rbenv
 
 RUN chown -R apache. $RBENV_ROOT
 
 RUN \
   echo 'gem: --no-rdoc --no-ri' >> /.gemrc ;\
+  echo 'gem: --no-rdoc --no-ri' >> /etc/.gemrc ;\
   gem install bundler passenger sensu-plugin redis ruby-supervisor rubocop haml-lint
 
 ADD ./files/passenger.conf /etc/httpd/conf.d/passenger.conf
