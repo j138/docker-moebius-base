@@ -18,7 +18,7 @@ RUN \
 # sshでログインするユーザーを用意
 RUN \
   useradd $USER; \
-  gpasswd -a $USER apache; \
+  gpasswd -a $USER nginx; \
   echo "$USER:$PW" | chpasswd; \
   echo "$USER ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers.d/$USER; \
   touch /etc/sysconfig/network; \
@@ -27,9 +27,7 @@ RUN \
 
 # apache
 RUN \
-  rm -rf /var/log/httpd; \
-  mkdir /var/log/httpd; \
-  chown apache /var/log/httpd; \
+  rm -rf /var/log/httpd && mkdir /var/log/httpd; \
   echo hello > /var/www/html/index.html
 
 
@@ -64,14 +62,14 @@ RUN sed -ri "s/daemonize yes/daemonize no/" /etc/redis.conf
 ADD ./files/td-agent.conf /etc/td-agent/td-agent.conf
 RUN \
   sed -ri "s/__YOUR_LOG_SERVER_HERE__/$LOGSERVER/" /etc/td-agent/td-agent.conf; \
-  gpasswd -a td-agent apache; \
+  gpasswd -a td-agent nginx; \
   /usr/lib64/fluent/ruby/bin/fluent-gem install fluent-plugin-elasticsearch
 
 
 # install node.js
 RUN \
-  npm install -g grunt grunt-cli sass coffee-script bower; \
-  npm install -g grunt-bower-task grunt-contrib-csslint grunt-contrib-cssmin grunt-contrib-watch grunt-contrib-uglify grunt-contrib-concat grunt-contrib-compass --save-dev
+  npm install -g grunt grunt-cli sass coffee-script bower grunt-bower-task \
+  grunt-contrib-csslint grunt-contrib-cssmin grunt-contrib-watch grunt-contrib-uglify grunt-contrib-concat grunt-contrib-compass --save-dev
 
 
 # install ruby
@@ -93,19 +91,14 @@ RUN \
   rbenv global 2.1.5; \
   chmod -R 775 /usr/local/rbenv
 
-RUN chown -R apache. $RBENV_ROOT
+RUN \
+  chown -R nginx. $RBENV_ROOT; \
+  echo ok > /usr/share/nginx/html/healthcheck.html
 
 RUN \
   echo 'gem: --no-rdoc --no-ri' >> /.gemrc; \
   echo 'gem: --no-rdoc --no-ri' >> /etc/.gemrc; \
-  gem install bundler passenger sensu-plugin redis ruby-supervisor rubocop haml-lint
-
-ADD ./files/passenger.conf /etc/httpd/conf.d/passenger.conf
-
-RUN \
-  eval "$(rbenv init -)"; \
-  passenger-install-apache2-module -a; \
-  passenger-install-apache2-module --snippet >> /etc/httpd/conf.d/passenger.conf; \
+  gem install bundler sensu-plugin redis ruby-supervisor rubocop haml-lint; \
   echo "export SECRET_KEY_BASE=__SECRET_KEY_BASE__" >> /etc/profile.d/rails.sh; \
   chmod +x /etc/profile.d/rails.sh
 
@@ -166,7 +159,7 @@ ADD ./files/supervisord.conf /etc/supervisord.conf
 # sensu       : 4567, 5671
 # rabbitmq    : 15672
 # supervisord : 9001
-# apache      : 8080
-EXPOSE 22 80 4567 5671 15672 9001 8080
+# nginx       : 8888
+EXPOSE 22 80 4567 5671 15672 9001 8888
  
 CMD ["/usr/bin/supervisord"]
