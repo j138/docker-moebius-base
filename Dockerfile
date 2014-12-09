@@ -6,13 +6,16 @@ ENV LOGSERVER 127.0.0.1
 ENV USER t00114
 ENV PW melody
 ENV HOME /root
+ENV TERM xterm-256color
 
 RUN \
   mkdir -m 700 /root/.ssh; \
   sed -ri "s/^UsePAM yes/#UsePAM yes/" /etc/ssh/sshd_config; \
   sed -ri "s/^#UsePAM no/UsePAM no/" /etc/ssh/sshd_config; \
   sed -rie "9i Allow from $IP" /etc/httpd/conf.d/phpmyadmin.conf; \
-  sed -ri "s/cfg\['blowfish_secret'\] = ''/cfg['blowfish_secret'] = '`uuidgen`'/" /usr/share/phpmyadmin/config.inc.php
+  sed -ri "s/cfg\['blowfish_secret'\] = ''/cfg['blowfish_secret'] = '`uuidgen`'/" /usr/share/phpmyadmin/config.inc.php; \
+  localedef -f UTF-8 -i ja_JP ja_JP.utf8; \
+  echo 'LANG="ja_JP.UTF-8"' >> /etc/sysconfig/i18n
 
 
 # sshでログインするユーザーを用意
@@ -28,8 +31,8 @@ RUN \
 # apache
 RUN \
   rm -rf /var/log/httpd && mkdir /var/log/httpd; \
-  echo hello > /var/www/html/index.html
-
+  echo hello > /var/www/html/index.html; \
+  echo hello > /usr/share/nginx/html/healthcheck.html
 
 # mysql
 ADD ./files/mysql_encoding.cnf /etc/my.cnf.d/
@@ -92,15 +95,12 @@ RUN \
   chmod -R 775 /usr/local/rbenv
 
 RUN \
-  chown -R nginx. $RBENV_ROOT; \
-  echo ok > /usr/share/nginx/html/healthcheck.html
-
-RUN \
   echo 'gem: --no-rdoc --no-ri' >> /.gemrc; \
   echo 'gem: --no-rdoc --no-ri' >> /etc/.gemrc; \
   gem install bundler sensu-plugin redis ruby-supervisor rubocop haml-lint; \
   echo "export SECRET_KEY_BASE=__SECRET_KEY_BASE__" >> /etc/profile.d/rails.sh; \
-  chmod +x /etc/profile.d/rails.sh
+  chmod +x /etc/profile.d/rails.sh; \
+  chown -R nginx. $RBENV_ROOT
 
 
 # RabbitMQ
