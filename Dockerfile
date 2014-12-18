@@ -86,7 +86,8 @@ RUN \
 RUN \
   git clone https://github.com/sstephenson/rbenv.git $RBENV_ROOT; \
   git clone https://github.com/sstephenson/ruby-build.git $RBENV_ROOT/plugins/ruby-build; \
-  $RBENV_ROOT/plugins/ruby-build/install.sh
+  $RBENV_ROOT/plugins/ruby-build/install.sh; \
+  git clone https://github.com/ianheggie/rbenv-binstubs.git $RBENV_ROOT/plugins/rbenv-binstubs
 
 RUN \
   rbenv install 2.1.5; \
