@@ -1,4 +1,4 @@
-arena:
+moebius:
   build: .
   ports:
     - "10022:22"
