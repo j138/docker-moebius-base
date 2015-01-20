@@ -22,7 +22,7 @@ CentOS6にwebサーバー用の環境を構築。プロセスはsupervisorで管
 マネージャ
 ----
 - supervisor
- - http://127.0.0.1:9001/
+ - http://localhost:9001/
 - uchiwa
  - http://localhost:3000/
 - RabbitMQ
