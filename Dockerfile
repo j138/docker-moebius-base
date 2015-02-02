@@ -12,8 +12,6 @@ RUN \
   mkdir -m 700 /root/.ssh; \
   sed -ri "s/^UsePAM yes/#UsePAM yes/" /etc/ssh/sshd_config; \
   sed -ri "s/^#UsePAM no/UsePAM no/" /etc/ssh/sshd_config; \
-  sed -rie "9i Allow from $IP" /etc/httpd/conf.d/phpmyadmin.conf; \
-  sed -ri "s/cfg\['blowfish_secret'\] = ''/cfg['blowfish_secret'] = '`uuidgen`'/" /usr/share/phpmyadmin/config.inc.php; \
   localedef -f UTF-8 -i ja_JP ja_JP.utf8; \
   echo 'LANG="ja_JP.UTF-8"' >> /etc/sysconfig/i18n
 
